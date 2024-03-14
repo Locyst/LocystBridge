@@ -1,67 +1,65 @@
 # LocystBridge
 
-## Table of Contents
-* [General Information](#general-information)
-* [Features](#features)
-* [Usage](#usage)
-* [Project Status](#project-status)
+LocystBridge is a Python library that provides functionalities for managing variables and their values. It allows users to create, edit, delete, and retrieve variables with ease, making it convenient to handle variable operations across multiple files.
 
-  
-## General Information
-- LocystBridge is a library developed for the sharing of variables between libraries and modules
-- LocystBridge provides an easy way to share a everchanging amount of variables
+## How to Use
 
-## Features
-- LocystBridge allows for variable management with the creation, editing and deletion of variables.
-- LocystBridge has a simple memory manager that makes sure that excessive amounts of memory are not being used by deletes variables when the maximum number of variables are exceeded.
-- LocystBridge provides a basic way to log changes in variables
+- Clone the repository.
+- Import the `create`, `edit`, `delete`, `value`, `returnList` functions into your Python environment.
+- Follow the example code below to create new variables menus and interact with them.
 
 ## Usage
-LocystBridge could be used for the sharing of configuration data.
 
-```
-# Assume this is the main process running on a central server
+```python
+from LocystBridge import create, edit, delete, value, returnList
 
-import LocystBridge
+# Create a variable
+create("my_variable", 42)
 
-# Define a function to update the shared configuration
-def update_config(key, value):
-    LocystBridge.bridge.createVariable(key, value)
+# Get the value of the variable
+print("Value of 'my_variable':", value("my_variable"))
 
-# Assume these are worker processes running on different nodes
+# Edit the variable
+edit("my_variable", 100)
 
-# Function to retrieve a configuration parameter
-def get_config(key):
-    return LocystBridge.bridge.returnVariableValue(key)
+# Get the updated value
+print("Updated value of 'my_variable':", value("my_variable"))
 
-# Example usage
-if __name__ == "__main__":
-    # Update the shared configuration from the main process
-    update_config("max_connections", 100)
-    update_config("timeout", 30)
+# Create multiple variables
+create("var1", "value1")
+create("var2", "value2")
+create("var3", "value3")
 
-    # Worker process 1 reads and uses the configuration
-    max_connections = get_config("max_connections")
-    timeout = get_config("timeout")
-    print("Worker 1 - Max Connections:", max_connections)
-    print("Worker 1 - Timeout:", timeout)
+# Get a list of all variables
+print("List of variables:", returnList())
 
-    # Worker process 2 reads and uses the configuration
-    max_connections = get_config("max_connections")
-    timeout = get_config("timeout")
-    print("Worker 2 - Max Connections:", max_connections)
-    print("Worker 2 - Timeout:", timeout)
+# Delete the variable
+delete("my_variable")
+
+# Try to get the value after deletion
+print("Value of 'my_variable' after deletion:", value("my_variable")) # Raises error
 ```
 
-Output:
-```
-Worker 1 - Max Connections: 100
-Worker 1 - Timeout: 30
-Worker 2 - Max Connections: 100
-Worker 2 - Timeout: 30
-```
+## Features
 
-## Project Status
-Project is: _in progress_
+- **Create**: Create new variables with specified names and values.
+- **Value**: Retrieve the value of a variable by its name.
+- **Edit**: Modify the value of an existing variable.
+- **Delete**: Remove a variable from the collection.
+- **Return List**: Obtain a list of all variable names currently stored.
 
-This library is actively being developed to add more features and improve already built features.
+## Configuration
+
+The `LocystBridge` module provides the following functionalities:
+
+- `create(name, value=None)`: Creates a variable with a specified name and value.
+- `value(name)`: Retrieves the value of a variable by its name.
+- `edit(name, new_value)`: Modifies the value of an existing variable.
+- `delete(name)`: Deletes a variable specified by its name.
+- `returnList()`: Returns a list of all variable names currently stored.
+
+## To-do
+
+- Enhance error handling and edge case scenarios.
+- Extend functionality to support additional variable operations if required.
+- Improve documentation and examples for better understanding and usability.
