@@ -1,4 +1,3 @@
-from ..LocystLogging import INFO, autolog, debug, error, info
 import configparser
 import os
 
@@ -11,8 +10,9 @@ class Variable:
     def __init__(self, name, value):
         self.name = name
         self.value = value
+        self.old_value = None
 
-    def getValue(self):
+    def get_value(self):
         """
         Returns the value of the variable.
 
@@ -30,23 +30,20 @@ class Variable:
          - new_value: The new value to set the variable to.
         """
       
-        old_value = self.value
+        self.old_value = self.value
         self.value = new_value
-        info(f"Changed value of {self.name} from {old_value} to {new_value}")
 
     def delete(self):
         """
         Deletes the variable.
         """
       
-        info(f"Deletion of {self.name}")
-        variables.remove(self)
+        del variables[self.name]
 
 # ------------------------------------------------------------------------------------#
 
-variables = []
+variables = {}
 
-@autolog
 def value(name):
     """
     Returns the value of a variable.
@@ -59,7 +56,7 @@ def value(name):
     """
   
     variable = _findVariable(name)
-    return variable.getValue()
+    return variable.get_value()
 
 def edit(name, new_value):
     """
@@ -74,7 +71,7 @@ def edit(name, new_value):
     if variable:
         variable.edit(new_value)
     else:
-        error(f"[variable_edit_failure] Variable {name} not found")
+        raise ValueError(f"Variable {name} not found")
 
 def delete(name):
     """
@@ -88,7 +85,7 @@ def delete(name):
     if variable:
         variable.delete()
     else:
-        error(f"[variable_delete_failure] Variable {name} not found")
+        raise ValueError(f"Variable {name} not found")
 
 def returnList():
     """
@@ -98,7 +95,7 @@ def returnList():
      - List[strs]: A list of all variable names
     """
   
-    return [var for var in variables]
+    return list(variables.keys())
 
 def create(name, value=None):
     """
@@ -110,19 +107,13 @@ def create(name, value=None):
     """
   
     if not isinstance(name, (str, int)):
-        error(f"[variable_creation_failure] Tried to create {name}")
-        return
-    variable = _findVariable(name)
+        raise ValueError(f"Tried to create variable {name}. Variables must be strings or intagers")
+    if name in variables:
+        raise ValueError(f"Variable, {name} already exists")
+    
+    variables[name] = Variable(name, value)
+    _memorySaver()
 
-    if variable:
-        error(f"[variable_creation_failure] Variable, {name} already exists")
-        variable.edit(value)
-    else:
-        variables.append(Variable(name, value))
-        debug(f"[variable_creation_success] '{name}' variable created")
-        _memorySaver()
-
-@autolog
 def _memorySaver(is_automated_call=False, delete_amount=10):
     """
     Automatically deletes variables if the amount of variables goes above a certain amount.
@@ -135,15 +126,15 @@ def _memorySaver(is_automated_call=False, delete_amount=10):
     """
   
     if is_automated_call and len(variables) > int(config.get('Config', 'maxVariables')):
-        vars = variables[:delete_amount:]
-        for variable in vars:
-            variable.delete()
-    elif not is_automated_call:
-        vars = variables[delete_amount:]
-        for variable in vars:
-            variable.delete()
+        keys_to_delete = list(variables.keys())[:delete_amount]
+        for key in keys_to_delete:
+            del variables[key]
+    elif not is_automated_call and len(variables) > delete_amount:
+        keys_to_delete = list(variables.keys())[delete_amount:]
+        for key in keys_to_delete:
+            del variables[key]
 
-def _findVariable(name):
+def _findVariable(lookup_name):
     """
     Locates a variable object.
 
@@ -154,7 +145,6 @@ def _findVariable(name):
      - Variable: The variable object that you're looking for, else None if there isnt one
     """
   
-    for variable in variables:
-        if variable.name == name:
-            return variable
+    if lookup_name in variables:
+        return variables[lookup_name]
     return None
